@@ -3,7 +3,12 @@ name = "RUST_ACTIX"
 version = "0.1.0"
 edition = "2021"
 
+[workspace]
+members = [".", "entity", "migration"]
+
 [dependencies]
+entity = { path = "entity" }
+migration = { path = "migration" } # depends on your needs
 actix-web = "4.9.0"
 serde = "1.0.214"
 serde_json = "1.0.132"
@@ -11,4 +16,9 @@ env_logger = "0.11.5"
 dotenv = "0.15.0"
 lazy_static = "1.5.0"
 chrono = "0.4.38"
-sea-orm = {version = "0.12", features = ["sqlx-postgres","macros","runtime-tokio-rustls"]}
+sea-orm = {version = "1.1.0", features = ["sqlx-postgres","macros","runtime-tokio-rustls"]}
+jsonwebtoken = "9.3.0"
+sha256 = "1.5.0"
+actix-web-lab = "0.20.2"
+actix-multipart = "0.6.1"
+sanitize-filename = "0.5.0"
