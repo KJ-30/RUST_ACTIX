@@ -4,7 +4,6 @@ use sea_orm::{ConnectionTrait, Statement};
 #[get("/hello/{name}")]
 pub async fn greet(name: web::Path<String>) -> impl Responder {
     api_response::ApiResponse::new(200, format!("Hello {}!", name))
-    api_response::ApiResponse::new(200, format!("Hello {}!", name))
 }
 #[get("/test")]
 pub async fn test(api_state: web::Data<AppState>) -> impl Responder {
