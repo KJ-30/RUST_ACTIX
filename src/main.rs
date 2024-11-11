@@ -14,13 +14,17 @@ impl Display for MainError {
         write!(f, "Error{}", self.message)
     }
 }
+// 实现Error trait以支持MainError类型作为错误处理
 impl Error for MainError {
+    // 返回错误的源头，这里没有源头，所以返回None
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         None
     }
+    // 返回错误的描述信息，该信息是MainError实例的一部分
     fn description(&self) -> &str {
         &self.message
     }
+    // 返回错误的直接原因，这里使用source方法表示没有更深层次的原因
     fn cause(&self) -> Option<&dyn Error> {
         self.source()
     }
