@@ -5,6 +5,7 @@ lazy_static! {
     pub static ref PORT: u16 = set_port();
     pub static ref DATABASE_URL: String = set_database_url();
     pub static ref JWT_SECRET: String = set_jwt_secret();
+    pub static ref MAX_FILE_SIZE: u64 = set_max_file_size();
 }
 
 fn set_address() -> String {
@@ -27,4 +28,12 @@ fn set_database_url() -> String {
 fn set_jwt_secret() -> String {
     dotenv::dotenv().ok();
     env::var("JWT_SECRET").expect("secret")
+}
+
+fn set_max_file_size() -> u64 {
+    dotenv::dotenv().ok();
+    env::var("MAX_FILE_SIZE")
+        .unwrap_or("5050".to_owned())
+        .parse::<u64>()
+        .expect("Cant parse the max file size")
 }
