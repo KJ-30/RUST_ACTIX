@@ -36,9 +36,9 @@ pub async fn user(
 pub async fn update_user(
     api_state: web::Data<api_state::AppState>,
     use_data: web::Json<UpdateUserModel>,
-    Claims_data: Claims,
+    claims_data: Claims, // 修改变量名为 snake_case
 ) -> Result<api_response::ApiResponse, api_response::ApiResponse> {
-    let mut user_model = entity::user::Entity::find_by_id(Claims_data.id)
+    let mut user_model = entity::user::Entity::find_by_id(claims_data.id)
         .one(&api_state.db)
         .await
         .map_err(|err| api_response::ApiResponse::new(500, err.to_string()))?
