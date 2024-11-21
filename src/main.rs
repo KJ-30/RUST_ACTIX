@@ -46,7 +46,7 @@ async fn main() -> Result<(), MainError> {
         .map_err(|err| MainError {
             message: err.to_string(),
         })?;
-    Migrator::up(&db, None).await.map_err(|err| MainError {
+    Migrator::up(&db,None).await.map_err(|err| MainError {
         message: err.to_string(),
     })?;
     println!("port: {}", port);
@@ -59,6 +59,7 @@ async fn main() -> Result<(), MainError> {
             .configure(routes::home_routes::config)
             .configure(routes::auth_routes::config)
             .configure(routes::user_routes::config)
+            .configure(routes::post_routes::config)
     })
     .bind((address, port))
     .map_err(|err| MainError {
