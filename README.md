@@ -36,12 +36,21 @@
    ```sh
    git clone https://github.com/KJ-30/RUST_ACTIX.git
    cd RUST_ACTIX
+   ```
 2. 安装依赖：
+   ```
    cargo build
+   ```
 3. 数据库迁移
    - 首先要在`.env`配置上数据库和密码
+  ```
   sea-orm-cli migrate up
+  ```
 4. 运行项目
+  ```
   cargo run
+  ```
 5.运行单元测试和集成测试：
+  ```
   cargo test
+  ```
