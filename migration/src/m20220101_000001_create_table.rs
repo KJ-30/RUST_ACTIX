@@ -1,4 +1,4 @@
-use sea_orm_migration::{prelude::*, schema::*};
+use sea_orm_migration::prelude::*;
 
 use crate::m20241104_080800_create_user_table::User;
 
@@ -14,21 +14,22 @@ impl MigrationTrait for Migration {
                     .table(Post::Table)
                     .if_not_exists()
                     .col(
-                        pk_auto(Post::Id)
+                        ColumnDef::new(Post::Id)
                             .integer()
                             .not_null()
                             .auto_increment()
                             .primary_key(),
                     )
-                    .col(string(Post::Title).string().not_null())
-                    .col(string(Post::Uuid).unique_key().not_null())
-                    .col(string(Post::Image).string())
-                    .col(string(Post::Text).string().not_null())
-                    .col(string(Post::UserId).integer().not_null())
+                    .col(ColumnDef::new(Post::Title).string().not_null())
+                    .col(ColumnDef::new(Post::Text).string().not_null())
+                    .col(ColumnDef::new(Post::Uuid).uuid().unique_key().not_null())
+                    .col(ColumnDef::new(Post::Image).string())
+                    .col(ColumnDef::new(Post::UserId).integer().not_null())
+                    .col(ColumnDef::new(Post::CreatedAt).date_time().not_null())
                     .foreign_key(
                         ForeignKey::create()
-                            .name("fk-post-users-Id")
-                            .from(Post::Table, Post::Uuid)
+                            .name("fk-posts-users-id")
+                            .from(Post::Table, Post::UserId)
                             .to(User::Table, User::Id),
                     )
                     .to_owned(),
@@ -52,4 +53,5 @@ enum Post {
     Uuid,
     Image,
     UserId,
+    CreatedAt,
 }

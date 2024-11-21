@@ -1,4 +1,4 @@
-use sea_orm_migration::{prelude::*, schema::*};
+use sea_orm_migration::prelude::*;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -11,10 +11,16 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(User::Table)
                     .if_not_exists()
-                    .col(pk_auto(User::Id))
-                    .col(string(User::Name).not_null())
-                    .col(string(User::Password).not_null())
-                    .col(string(User::Email).not_null())
+                    .col(
+                        ColumnDef::new(User::Id)
+                            .integer()
+                            .not_null()
+                            .auto_increment()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(User::Name).string().not_null())
+                    .col(ColumnDef::new(User::Password).string().not_null())
+                    .col(ColumnDef::new(User::Email).string().not_null())
                     .to_owned(),
             )
             .await
