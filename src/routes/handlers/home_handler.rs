@@ -1,26 +1,58 @@
 use crate::utils::{api_response, api_state::AppState};
 use actix_web::{get, web, Responder};
-use sea_orm::{ConnectionTrait, Statement};
+use sea_orm::EntityTrait;
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
+struct User {
+    id: i32,
+    name: String,
+    email: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct UserList {
+    users: Vec<User>,
+}
+
 #[get("/hello/{name}")]
 pub async fn greet(name: web::Path<String>) -> impl Responder {
     api_response::ApiResponse::new(200, format!("Hello {}!", name))
 }
 
 #[get("/test")]
-pub async fn test(api_state: web::Data<AppState>) -> impl Responder {
-    let res = api_state
-        .db
-        .query_all(Statement::from_string(
-            sea_orm::DatabaseBackend::Postgres,
-            "SELECT * FROM user;",
-        ))
+/// 异步测试函数，用于获取用户列表
+///
+/// 此函数从数据库中检索所有用户信息，并将其转换为JSON格式的响应返回
+/// 它利用了Actix Web框架的`web::Data`来共享应用状态，包括数据库连接等信息
+///
+/// # Arguments
+/// * `api_state` - 一个包含应用状态的`web::Data`实例，用于访问数据库等资源
+///
+/// # Returns
+/// * `Result<api_response::ApiResponse, api_response::ApiResponse>` - 返回一个结果，包含成功或失败的`ApiResponse`实例
+///   成功时，返回状态码200和用户列表的JSON字符串；失败时，返回相应的错误信息
+pub async fn test(
+    api_state: web::Data<AppState>,
+) -> Result<api_response::ApiResponse, api_response::ApiResponse> {
+    // 从数据库中查找所有用户
+    let users: Vec<User> = entity::user::Entity::find()
+        .all(&api_state.db)
         .await
-        .unwrap();
-    api_response::ApiResponse::new(200, format!("{:?}", res))
-    // 将查询结果转换为 JSON
-    // let users: Vec<serde_json::Value> = res.into_iter().map(|row| row.into_json_value()).collect();
+        .map_err(|err| api_response::ApiResponse::new(500, err.to_string()))?
+        .into_iter()
+        .map(|user| User {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+        })
+        .collect();
 
-    // 创建 ApiResponse 并返回
-    // let response = ApiResponse::new(200, json!({ "users": users }));
-    // HttpResponse::Ok().json(response)
+    // 将用户列表封装到`UserList`结构中
+    let user_list = UserList { users };
+    // 将用户列表序列化为JSON字符串
+    let user_list_json = serde_json::to_string(&user_list).unwrap();
+
+    // 返回包含用户列表JSON字符串的成功响应
+    Ok(api_response::ApiResponse::new(200, user_list_json))
 }
