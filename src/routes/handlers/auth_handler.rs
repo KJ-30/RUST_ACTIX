@@ -8,22 +8,29 @@ use sea_orm::QueryFilter;
 use sea_orm::Set;
 use serde::{Deserialize, Serialize};
 use sha256::digest;
+
+// 注册请求的JSON结构
 #[derive(Serialize, Deserialize)]
 struct RegisterJson {
     name: String,
     email: String,
     password: String,
 }
+
+// 登录请求的JSON结构
 #[derive(Serialize, Deserialize)]
 struct LoginJson {
     email: String,
     password: String,
 }
+
+// 注册用户的异步函数
 #[post("/register")]
 pub async fn register(
     app_state: web::Data<api_state::AppState>,
     register_json: web::Json<RegisterJson>,
 ) -> Result<ApiResponse, ApiResponse> {
+    // 创建用户模型并插入数据库
     let user_model = entity::user::ActiveModel {
         name: Set(register_json.name.clone()),
         email: Set(register_json.email.clone()),
@@ -34,25 +41,12 @@ pub async fn register(
     .await
     .map_err(|err| ApiResponse::new(500, err.to_string()))?;
 
+    // 返回用户ID
     Ok(ApiResponse::new(200, format!("{}", user_model.id)))
 }
 
+// 登录用户的异步函数
 #[post("/login")]
-/// 异步登录函数
-///
-/// 该函数接收登录信息的JSON对象和应用状态对象作为参数，
-/// 并尝试根据提供的电子邮件和密码对用户进行身份验证。
-/// 如果用户存在且密码匹配，则生成一个JWT令牌并返回。
-///
-/// # 参数
-///
-/// * `login_json` - 包含登录信息的JSON对象，包括电子邮件和密码。
-/// * `app_state` - 应用状态对象，包含数据库连接等信息。
-///
-/// # 返回
-///
-/// * 成功时 - 返回包含JWT令牌的响应。
-/// * 失败时 - 返回适当的错误响应，如用户未找到或数据库查询错误。
 pub async fn login(
     login_json: web::Json<LoginJson>,
     app_state: web::Data<api_state::AppState>,

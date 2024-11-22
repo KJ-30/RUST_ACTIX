@@ -8,12 +8,15 @@ use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, Set, Tran
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+// 定义创建帖子的表单结构体
 #[derive(MultipartForm)]
 struct CreatePostModel {
     text: Text<String>,
     title: Text<String>,
     file: TempFile,
 }
+
+// 定义帖子模型
 #[derive(Serialize, Deserialize, Debug)]
 struct PostModel {
     pub id: i32,
@@ -25,18 +28,22 @@ struct PostModel {
     pub created_at: NaiveDateTime,
     pub user: Option<UserModel>,
 }
+
+// 定义用户模型
 #[derive(Serialize, Deserialize, Debug)]
 struct UserModel {
     email: String,
     name: String,
 }
 
+// 创建帖子的API端点
 #[post("create")]
 pub async fn create_post(
     app_state: web::Data<api_state::AppState>,
     claim_data: Claims,
     post_data: MultipartForm<CreatePostModel>,
 ) -> Result<api_response::ApiResponse, api_response::ApiResponse> {
+    // 检查文件类型和大小
     let check_name = post_data
         .file
         .file_name
@@ -69,6 +76,8 @@ pub async fn create_post(
         }
         _ => {}
     }
+
+    // 创建帖子实体并开始数据库事务
     let posts_entity = entity::post::ActiveModel {
         text: Set(post_data.text.clone()),
         title: Set(post_data.title.clone()),
@@ -82,10 +91,14 @@ pub async fn create_post(
         .begin()
         .await
         .map_err(|err| api_response::ApiResponse::new(400, err.to_string()))?;
+
+    // 保存帖子实体
     let mut create_entity = posts_entity
         .save(&txn)
         .await
         .map_err(|err| api_response::ApiResponse::new(400, err.to_string()))?;
+
+    // 处理文件上传
     let temp_file_path = post_data.file.file.path();
     let file_name = post_data
         .file
@@ -113,12 +126,10 @@ pub async fn create_post(
                 "Post Created".to_owned(),
             ))
         }
-
         Err(_) => {
             txn.rollback()
                 .await
                 .map_err(|err| api_response::ApiResponse::new(400, err.to_string()))?;
-
             Err(api_response::ApiResponse::new(
                 400,
                 "Error copying file".to_owned(),
@@ -127,11 +138,13 @@ pub async fn create_post(
     }
 }
 
+// 获取用户自己的帖子
 #[get("my-post")]
 pub async fn get_my_post(
     app_state: web::Data<api_state::AppState>,
     claim_data: Claims,
 ) -> Result<api_response::ApiResponse, api_response::ApiResponse> {
+    // 查询数据库中属于当前用户的所有帖子
     let post_data: Vec<PostModel> = entity::post::Entity::find()
         .filter(entity::post::Column::UserId.eq(claim_data.id))
         .all(&app_state.db)
@@ -153,10 +166,12 @@ pub async fn get_my_post(
     Ok(api_response::ApiResponse::new(200, res_str.to_owned()))
 }
 
+// 获取所有帖子
 #[get("all-post")]
 pub async fn get_all_post(
     app_state: web::Data<api_state::AppState>,
 ) -> Result<api_response::ApiResponse, api_response::ApiResponse> {
+    // 查询数据库中的所有帖子
     let post_data: Vec<PostModel> = entity::post::Entity::find()
         .all(&app_state.db)
         .await
@@ -177,11 +192,13 @@ pub async fn get_all_post(
     Ok(api_response::ApiResponse::new(200, res_str.to_owned()))
 }
 
+// 获取单个帖子
 #[get("post/{post_uuid}")]
 pub async fn get_one_post(
     app_state: web::Data<api_state::AppState>,
     post_uuid: web::Path<Uuid>,
 ) -> Result<api_response::ApiResponse, api_response::ApiResponse> {
+    // 根据UUID查询单个帖子及其关联的用户
     let post_data: PostModel = entity::post::Entity::find()
         .filter(entity::post::Column::Uuid.eq(post_uuid.clone()))
         .find_also_related(entity::user::Entity)

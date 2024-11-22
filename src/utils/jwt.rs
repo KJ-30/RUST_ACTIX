@@ -5,6 +5,7 @@ use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, 
 use serde::{Deserialize, Serialize};
 use std::future;
 
+/// Claims 结构体用于JWT中，以携带用户信息
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Claims {
     pub exp: usize,    // 过期时间
@@ -13,9 +14,11 @@ pub struct Claims {
     pub id: i32,
 }
 
+/// 实现 FromRequest 以便在请求中提取 Claims 信息
 impl FromRequest for Claims {
     type Error = actix_web::Error;
     type Future = future::Ready<Result<Self, Self::Error>>;
+    /// 从请求中提取 Claims 信息
     fn from_request(
         req: &actix_web::HttpRequest,
         payload: &mut actix_web::dev::Payload,
@@ -26,6 +29,8 @@ impl FromRequest for Claims {
         }
     }
 }
+
+/// 生成 JWT Token
 pub fn encode_jwt(email: String, id: i32) -> Result<String, jsonwebtoken::errors::Error> {
     let now = Utc::now();
     let claims = Claims {
@@ -42,6 +47,7 @@ pub fn encode_jwt(email: String, id: i32) -> Result<String, jsonwebtoken::errors
     )
 }
 
+/// 验证并解析 JWT Token
 pub fn decode_jwt(token: String) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
     let secret = (*constants::JWT_SECRET).clone();
     let claim_data = decode(

@@ -3,6 +3,7 @@ use actix_web::{get, web, Responder};
 use sea_orm::EntityTrait;
 use serde::{Deserialize, Serialize};
 
+// 定义User结构体，用于序列化和反序列化用户信息
 #[derive(Serialize, Deserialize)]
 struct User {
     id: i32,
@@ -10,16 +11,19 @@ struct User {
     email: String,
 }
 
+// 定义UserList结构体，包含一个用户列表
 #[derive(Serialize, Deserialize)]
 struct UserList {
     users: Vec<User>,
 }
 
+// 定义一个GET路由，用于问候用户
 #[get("/hello/{name}")]
 pub async fn greet(name: web::Path<String>) -> impl Responder {
     api_response::ApiResponse::new(200, format!("Hello {}!", name))
 }
 
+// 定义一个GET路由，用于测试API响应
 #[get("/test")]
 /// 异步测试函数，用于获取用户列表
 ///
